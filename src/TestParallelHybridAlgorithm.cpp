@@ -730,20 +730,98 @@ void conference_function(int world_rank) {
 }
 
 
+// ---------------------------------------------------------------------------
+// Modeled on conference_java(); objective values come from scripts/worker.py.
+//
+//   f1(x) = (x1 - 1)^2 + (x2 - 2)^2
+//   f2(x) = (x1 + 1)^2 + (x2 + 2)^2
+//
+// Analytic Pareto set: the straight segment between (1,2) and (-1,-2).
+// ---------------------------------------------------------------------------
+
+// SHORT TEST: 10000.  Set to 10000000 for the full run.
+// Override without editing: mpicxx -DPYTHON_N_MAX=...
+#ifndef PYTHON_N_MAX
+#define PYTHON_N_MAX 10000
+#endif
+
+void conference_python(int world_rank) {
+
+    int number_of_experiments=1;//must be 1
+
+    for(int i=0;i<number_of_experiments;i++){
+
+        Function *of1 = new PythonFunction();
+
+        ParallelHybridAlgorithmParams *params=new ParallelHybridAlgorithmParams();
+        params->f=of1;
+        params->I_max=1;
+        params->N_max=PYTHON_N_MAX;
+
+        params->N=1000;//
+        params->q=10;//
+        params->p=0.1;//
+
+        params->h0=4;//2//4
+        params->hn=6;//
+        params->update_h0_and_hn=true;
+        params->accept_sub_optimal_Pareto_solutions=false;
+
+
+        ParallelHybridAlgorithm *parallel1 = new ParallelHybridAlgorithm(params);
+        parallel1->optimize();
+        if(1||world_rank==0)
+            cout<<"parallel1->get_P()->size(): "<<parallel1->get_P()->size()<<" world_rank: "<<world_rank<<endl;
+
+        if(world_rank==0){
+
+            cout<<"PARETO OPTIMAL POINTS (f1 f2):"<<endl;
+            cout<<endl<<endl;
+            for (vector<Solution*>::iterator it = parallel1->get_P()->begin(); it != parallel1->get_P()->end(); ++it) {
+                cout<<(*it)->get_evaluation_of_objective_functions()[0]<<" "<<(*it)->get_evaluation_of_objective_functions()[1]<<endl;
+            }
+            cout<<endl<<endl;
+
+            // denormalized decision points: these are what must lie on the
+            // segment between (1,2) and (-1,-2)
+            cout<<"PARETO OPTIMAL DECISION POINTS (x1 x2):"<<endl;
+            for (vector<Solution*>::iterator it = parallel1->get_P()->begin(); it != parallel1->get_P()->end(); ++it) {
+                double *upper_bound=(*it)->get_f()->upper_bound;
+                double *lower_bound=(*it)->get_f()->lower_bound;
+                for(int j=0;j<2;j++){
+                    cout<<lower_bound[j]+(upper_bound[j]-lower_bound[j])*(*it)->get_decision_point()[j]<<" ";
+                }
+                cout<<endl;
+            }
+            cout<<endl<<endl;
+
+            cout<<"Total function evaluations: "<<parallel1->get_total_function_evaluation_count()<<endl;
+            cout<<"Run time (miliseconds)"<<parallel1->get_run_time()<<endl;
+            cout<<"Run time (seconds)"<<parallel1->get_run_time()/1000.0<<endl;
+            cout<<"Run time (minutes)"<<parallel1->get_run_time()/60000.0<<endl;
+        }
+        delete parallel1;
+    }
+
+}
+
+
 int main() {
     clock_t start = clock();
     MPI_Init(NULL, NULL);
     cout<<"--------------------------------------------------------------------------------"<<endl;
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    conference_function( world_rank);
-    conference_function1(world_rank);
+    //conference_function( world_rank);
+    //conference_function1(world_rank);
     
 
-    optimise_ZDT(world_rank);
+    //optimise_ZDT(world_rank);
 
     
-    optimise_ZDT1(world_rank);
+    //optimise_ZDT1(world_rank);
+
+    conference_python( world_rank);
     
 
     

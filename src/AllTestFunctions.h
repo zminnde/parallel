@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "Function.h"
+#include "PythonFunction.h"
 #include <cmath>
 
 using namespace std;
