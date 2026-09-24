@@ -1,0 +1,3 @@
+build/src/*.o
+build/optimize
+build/result.txt
