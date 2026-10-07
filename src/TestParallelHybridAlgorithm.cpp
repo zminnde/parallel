@@ -742,7 +742,7 @@ void conference_function(int world_rank) {
 // SHORT TEST: 10000.  Set to 10000000 for the full run.
 // Override without editing: mpicxx -DPYTHON_N_MAX=...
 #ifndef PYTHON_N_MAX
-#define PYTHON_N_MAX 10000
+#define PYTHON_N_MAX 200000
 #endif
 
 void conference_python(int world_rank) {
@@ -755,7 +755,7 @@ void conference_python(int world_rank) {
 
         ParallelHybridAlgorithmParams *params=new ParallelHybridAlgorithmParams();
         params->f=of1;
-        params->I_max=1;
+        params->I_max=1000000;
         params->N_max=PYTHON_N_MAX;
 
         params->N=1000;//
