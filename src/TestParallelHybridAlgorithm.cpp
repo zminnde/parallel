@@ -782,13 +782,13 @@ void conference_python(int world_rank) {
             }
             cout<<endl<<endl;
 
-            // denormalized decision points: these are what must lie on the
-            // segment between (1,2) and (-1,-2)
-            cout<<"PARETO OPTIMAL DECISION POINTS (x1 x2):"<<endl;
+            // denormalized decision points, one line per Pareto point,
+            // in the same order as the objective values above
+            cout<<"PARETO OPTIMAL DECISION POINTS (w_wind w_temp w_gases w_pm10 w_pm25 S):"<<endl;
             for (vector<Solution*>::iterator it = parallel1->get_P()->begin(); it != parallel1->get_P()->end(); ++it) {
                 double *upper_bound=(*it)->get_f()->upper_bound;
                 double *lower_bound=(*it)->get_f()->lower_bound;
-                for(int j=0;j<2;j++){
+                for(int j=0;j<(*it)->get_f()->get_d();j++){
                     cout<<lower_bound[j]+(upper_bound[j]-lower_bound[j])*(*it)->get_decision_point()[j]<<" ";
                 }
                 cout<<endl;

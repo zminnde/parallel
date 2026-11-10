@@ -10,8 +10,13 @@
 
 #include "Function.h"
 
+// Override without editing: mpicxx -DPYTHON_INTERPRETER='"..."' -DPYTHON_WORKER_SCRIPT='"..."'
+#ifndef PYTHON_INTERPRETER
 #define PYTHON_INTERPRETER "/usr/bin/python3"
-#define PYTHON_WORKER_SCRIPT "/opt/multiobjective-optimisation/parallel/src/scripts/worker.py"
+#endif
+#ifndef PYTHON_WORKER_SCRIPT
+#define PYTHON_WORKER_SCRIPT "/opt/multiobjective-optimisation/LondonAirQuality/2026-11-10/optimized/worker.py"
+#endif
 
 class PythonFunction: public Function {
 
@@ -90,7 +95,11 @@ protected:
 
 		double * func_values= new double[m];
 
-		fprintf(write_to_python, "%.17g %.17g\n", decision_point[0], decision_point[1]);
+		// one line per evaluation: the d decision values separated by spaces
+		for (int i = 0; i < d; i++) {
+			fprintf(write_to_python, i == 0 ? "%.6f" : " %.6f", decision_point[i]);
+		}
+		fprintf(write_to_python, "\n");
 		fflush(write_to_python);
 
 		double f1, f2;
@@ -111,11 +120,13 @@ protected:
 public:
 
 	PythonFunction()  {
-		d=2;//  dimension of decision space
-		m=2;//  number of objective functions
+		d=6;//  dimension of decision space: 5 distance weights + threshold S
+		m=2;//  number of objective functions: mean NMAE12 and refused prediction count
 
-		double upper_bound[]={ 3,  4}; // decision  space bounds
-		double lower_bound[]={-3, -4}; // decision  space bounds
+		// S upper bound 14: with every weight at 1 the largest combined distance
+		// in the data is 13.81, so above it every candidate is always a neighbour.
+		double upper_bound[]={1, 1, 1, 1, 1, 14}; // decision  space bounds
+		double lower_bound[]={0, 0, 0, 0, 0, 0};   // decision  space bounds
 
 		intailize(d, upper_bound, lower_bound);
 
